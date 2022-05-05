@@ -1,4 +1,4 @@
-# lw-2010ec-controller
+# Topshak LW-3010EC Bench Power supply control module
 Python module for controlling Topshak/Longwei bench power supplies using USB/serial (Windows)
 
 Voltage and current set-points can be changed, and the measured output voltage and current read back.
