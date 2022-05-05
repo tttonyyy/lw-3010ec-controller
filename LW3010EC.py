@@ -33,7 +33,7 @@ class PSU:
         """Searches for PSU USB COM port adapter"""
 
         adapter_ids = {
-            "CP2104": ("1A86", "7523")
+            "CH340": ("1A86", "7523")
             # add other serial devices here if we find them
             }
 
