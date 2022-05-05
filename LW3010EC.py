@@ -73,16 +73,6 @@ class PSU:
 
         return rr.registers[0]
 
-    def read(self, address, len=1):
-        rr = self.pymc.read_holding_registers(address.value, len, unit=self.slaveId)
-
-        if rr.isError():
-            if self.debug:
-                print(address.name, rr.message)
-            return None
-
-        return rr.registers[0]
-
     @property
     def current(self):
         return self.read(PSU.Registers.CURRENT_READ)/100
