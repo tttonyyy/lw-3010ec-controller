@@ -4,6 +4,12 @@ Python module for controlling Topshak/Longwei bench power supplies using USB/ser
 Voltage and current set-points can be changed, and the measured output voltage and current read back.
 The output can be turned on and off.
 
+# Dependencies
+
+`python -m pip install pyserial pymodbus`
+
+Tested against Python 3.10.4
+
 # Example usage
 
 ```
