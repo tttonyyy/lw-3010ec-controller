@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # File:     LW3010EC.py
 # Brief:    Power supply controller
 
@@ -5,7 +6,8 @@ from serial.tools.list_ports import comports
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from pymodbus.client.sync import ModbusSerialClient
 from enum import Enum
-
+from time import sleep
+import click
 
 class PSU:
     """
@@ -97,12 +99,45 @@ class PSU:
     def output(self, on):
         self.write(PSU.Registers.OUTPUT_WRITE, int(on))
 
+@click.command()
+@click.option('--status', '-s', is_flag=True, default=False, help='Show PSU status after commands applied')
+@click.option('--on', is_flag=True, default=False, help='Turn output on')
+@click.option('--off', is_flag=True, default=False, help='Turn output off')
+@click.option('--voltage', '-v', type=click.FloatRange(0, 30), help='Set voltage in Volts')
+@click.option('--current', '-a', type=click.FloatRange(0, 10), help='Set current in Amps')
+@click.option('--delay-on', '-d', type=int, help='Delay in seconds applied before enabling output')
+@click.option('--debug', is_flag=True, default=False, help='Show internal debug messages')
+def psu_cmd(status, on, off, voltage, current, delay_on, debug):
+    """
+    PSU controller
+    
+    If both --on and --off are specified, the output will be switched off first, other changes applied and then the output switched on.
+    """
+    psu = PSU(slaveId=0x1, debug=debug)
+
+    if off:
+        psu.output = False
+        print('Output disabled')
+    
+    if voltage:
+        psu.voltage = voltage
+        print(f"Voltage set to {voltage}V")
+
+    if current:
+        psu.current = current
+        print(f"Current set to {current}A")
+
+    if on:
+        if delay_on:
+            sleep(delay_on)
+        psu.output = True
+        print('Output enabled')
+        
+    if status:
+        sleep(1) # allow PSU to settle for 1 second
+        print(f'Output={psu.output}')
+        print(f'Voltage={psu.voltage}V')
+        print(f'Current={psu.current}A')
 
 if __name__ == '__main__':
-    # if called directly just report current state of PSU without changing anything
-    psu = PSU(slaveId=0x1, debug=True)
-
-    print(f'Output={psu.output}')
-    print(f'Voltage={psu.voltage}V')
-    print(f'Current={psu.current}A')
-    
+    psu_cmd()
