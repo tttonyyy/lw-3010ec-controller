@@ -24,14 +24,17 @@ class PSU:
         OUTPUT_WRITE = 0x1006
         ADDRESS_WRITE = 0x1008 # untried
 
-    def __init__(self, slaveId=0x1, debug=False):
+    def __init__(self, com_port=None, slaveId=0x1, debug=False):
         self.debug = debug
         self.com_port = None
-        self.com_port = self.find_PSU_com_port()
+        if com_port is None:
+            self.com_port = self.find_PSU_com_port( )
+        else:
+            self.com_port = self.find_PSU_com_port( com_port )
         self.pymc = ModbusSerialClient(method='rtu', port=self.com_port, baudrate=9600, timeout=5)
         self.slaveId = slaveId
 
-    def find_PSU_com_port(self):
+    def find_PSU_com_port(self, com_port=None):
         """Searches for PSU USB COM port adapter"""
 
         adapter_ids = {
@@ -41,16 +44,23 @@ class PSU:
 
         com_ports_list = list(comports())
 
-        for port in com_ports_list:
-            # some adapters don't report VID and PID - these are not supported so don't try and test against them
-            if port.vid and port.pid:
-                for adapter in adapter_ids:
-                    if ('{:04X}'.format(port.vid), '{:04X}'.format(port.pid)) == adapter_ids[adapter]:
-                        if self.debug:
-                            print(f'Found supported {port.manufacturer} adapter {adapter} on {port.device}')
-                        # assume last com port found, multiple PSUs not supported (yet!)
-                        if self.com_port is None or port.device > self.com_port:
-                            self.com_port = port.device
+        if com_port is None:
+            # detect PSU in list of ports
+            for port in com_ports_list:
+                # some adapters don't report VID and PID - these are not supported so don't try and test against them
+                if port.vid and port.pid:
+                    for adapter in adapter_ids:
+                        if ('{:04X}'.format(port.vid), '{:04X}'.format(port.pid)) == adapter_ids[adapter]:
+                            if self.debug:
+                                print(f'Found supported {port.manufacturer} adapter {adapter} on {port.device}')
+                            # assume last com port found, multiple PSUs not supported (yet!)
+                            if self.com_port is None or port.device > self.com_port:
+                                self.com_port = port.device
+        else:
+            # check specified port exists on host
+            for port in com_ports_list:
+                if com_port == port.device:
+                    self.com_port = port.device
 
         if self.com_port is None:
             raise OSError('PSU com port adapter not found')
@@ -107,13 +117,14 @@ class PSU:
 @click.option('--current', '-a', type=click.FloatRange(0, 10), help='Set current in Amps')
 @click.option('--delay-on', '-d', type=int, help='Delay in seconds applied before enabling output')
 @click.option('--debug', is_flag=True, default=False, help='Show internal debug messages')
-def psu_cmd(status, on, off, voltage, current, delay_on, debug):
+@click.option('--com-port', type=str, default=None, help='Select com port to use. If omitted will self-detect PSU')
+def psu_cmd(status, on, off, voltage, current, delay_on, debug, com_port):
     """
     PSU controller
     
     If both --on and --off are specified, the output will be switched off first, other changes applied and then the output switched on.
     """
-    psu = PSU(slaveId=0x1, debug=debug)
+    psu = PSU(com_port=com_port, slaveId=0x1, debug=debug)
 
     if off:
         psu.output = False

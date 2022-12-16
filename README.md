@@ -48,5 +48,5 @@ Current=0.0A
 
 Both voltage and current are reported as 0.0 when the output is turned off.
 
-Note that when the class is created with `psu = PSU()` there is no need to specify the COM port, it will search for it by device VID/PID.
-These power supplies integrate the CH340 USB/serial device, if you have more than one CH340 device you may need to tweak the python.
+Note that when the class is created with `psu = PSU()` if the argument `com_port=` is omitted, it will search for the PSU by device VID/PID.
+These power supplies integrate the CH340 USB/serial device, if you have more than one CH340 device you will need to specify the port to use - either when creating the PSU object, or from the command line using `--com-port=/dev/ttyUSBx`
