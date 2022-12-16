@@ -115,13 +115,14 @@ class PSU:
 @click.option('--delay-on', '-d', type=int, help='Delay in seconds applied before enabling output')
 @click.option('--debug', is_flag=True, default=False, help='Show internal debug messages')
 @click.option('--com-port', type=str, default=None, help='Select com port to use. If omitted will self-detect PSU')
-def psu_cmd(status, on, off, voltage, current, delay_on, debug, com_port):
+@click.option('--slave-id', type=int, default=1, help='For dual-bank PSUs, select slave to control EG 1 (default) or 2')
+def psu_cmd(status, on, off, voltage, current, delay_on, debug, com_port, slave_id):
     """
     PSU controller
     
     If both --on and --off are specified, the output will be switched off first, other changes applied and then the output switched on.
     """
-    psu = PSU(com_port=com_port, slaveId=0x1, debug=debug)
+    psu = PSU(com_port=com_port, slaveId=slave_id, debug=debug)
 
     if off:
         psu.output = False
