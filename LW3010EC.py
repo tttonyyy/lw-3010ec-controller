@@ -26,16 +26,13 @@ class PSU:
 
     def __init__(self, com_port=None, slaveId=0x1, debug=False):
         self.debug = debug
-        self.com_port = None
-        if com_port is None:
-            self.com_port = self.find_PSU_com_port( )
-        else:
-            self.com_port = self.find_PSU_com_port( com_port )
+        self.com_port = self.find_PSU_com_port( com_port )
         self.pymc = ModbusSerialClient(method='rtu', port=self.com_port, baudrate=9600, timeout=5)
         self.slaveId = slaveId
 
     def find_PSU_com_port(self, com_port=None):
         """Searches for PSU USB COM port adapter"""
+        found_com_port = None
 
         adapter_ids = {
             "CH340": ("1A86", "7523")
@@ -54,21 +51,21 @@ class PSU:
                             if self.debug:
                                 print(f'Found supported {port.manufacturer} adapter {adapter} on {port.device}')
                             # assume last com port found, multiple PSUs not supported (yet!)
-                            if self.com_port is None or port.device > self.com_port:
-                                self.com_port = port.device
+                            if found_com_port is None or port.device > found_com_port:
+                                found_com_port = port.device
         else:
             # check specified port exists on host
             for port in com_ports_list:
                 if com_port == port.device:
-                    self.com_port = port.device
+                    found_com_port = port.device
 
-        if self.com_port is None:
+        if found_com_port is None:
             raise OSError('PSU com port adapter not found')
 
         if self.debug:
-            print(f'Assuming PSU on {self.com_port}')
+            print(f'Assuming PSU on {found_com_port}')
 
-        return self.com_port
+        return found_com_port
 
     def write(self, address, value):
         rr = self.pymc.write_register(address.value, value, unit=self.slaveId)
