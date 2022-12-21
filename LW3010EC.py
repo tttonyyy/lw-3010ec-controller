@@ -4,7 +4,14 @@
 
 from serial.tools.list_ports import comports
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-from pymodbus.client.sync import ModbusSerialClient
+import pymodbus
+from pymodbus.version import version as pymodbus_version
+
+if pymodbus_version.major >= 3:
+    from pymodbus.client import ModbusSerialClient
+else:
+    from pymodbus.client.sync import ModbusSerialClient
+
 from enum import Enum
 from time import sleep
 import click
