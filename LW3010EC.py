@@ -4,7 +4,7 @@
 
 from serial.tools.list_ports import comports
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-from pymodbus.client.sync import ModbusSerialClient
+from pymodbus.client import ModbusSerialClient
 from enum import Enum
 from time import sleep
 import click
@@ -68,12 +68,12 @@ class PSU:
         return found_com_port
 
     def write(self, address, value):
-        rr = self.pymc.write_register(address.value, value, unit=self.slaveId)
+        rr = self.pymc.write_register(address.value, value, slave=self.slaveId)
         if rr.isError() and self.debug:
             print(address.name, rr.message)
 
     def read(self, address, len=1):
-        rr = self.pymc.read_holding_registers(address.value, len, unit=self.slaveId)
+        rr = self.pymc.read_holding_registers(address.value, len, slave=self.slaveId)
 
         if rr.isError():
             if self.debug:
