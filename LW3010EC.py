@@ -7,6 +7,7 @@ from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from pymodbus.client import ModbusSerialClient
 from enum import Enum
 from time import sleep
+import os
 import click
 
 class PSU:
@@ -56,6 +57,8 @@ class PSU:
         else:
             # check specified port exists on host
             for port in com_ports_list:
+                if os.path.realpath(com_port) == port.device:
+                    found_com_port = os.path.realpath(com_port)
                 if com_port == port.device:
                     found_com_port = port.device
 
