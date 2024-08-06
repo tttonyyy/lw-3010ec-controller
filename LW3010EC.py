@@ -5,10 +5,9 @@
 from serial.tools.list_ports import comports
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from pymodbus.client import ModbusSerialClient
-from pymodbus import pdu
 from enum import Enum
 from time import sleep
-import os
+from os import path
 import click
 
 class PSU:
@@ -58,8 +57,8 @@ class PSU:
         else:
             # check specified port exists on host
             for port in com_ports_list:
-                if os.path.realpath(com_port) == port.device:
-                    found_com_port = os.path.realpath(com_port)
+                if path.realpath(com_port) == port.device:
+                    found_com_port = path.realpath(com_port)
                 if com_port == port.device:
                     found_com_port = port.device
 
@@ -77,19 +76,24 @@ class PSU:
             print(address.name, rr.message)
 
     def read(self, address, len=1):
+        value = None
         rr = self.pymc.read_holding_registers(address.value, len, slave=self.slaveId)
 
-        if not type(rr) is pdu.register_read_message.ReadHoldingRegistersResponse:
+        # sometimes rr is returned as an error byte string rather than a
+        # pdu.register_read_message.ReadHoldingRegistersResponse - however checking the
+        # type can causes problems because older versions of pymodbus don't have
+        # pdu.register_read_message.ReadHoldingRegistersResponse to compare against
+        try:
+            if not rr.isError():
+                value = rr.registers[0]
+            else:
+                if self.debug:
+                    print(address.name, rr.message)
+        except:
             if self.debug:
                 print(address.name, rr)
-            return None
-
-        if rr.isError():
-            if self.debug:
-                print(address.name, rr.message)
-            return None
-
-        return rr.registers[0]
+          
+        return value
 
     @property
     def current(self):
