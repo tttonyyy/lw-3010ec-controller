@@ -71,13 +71,13 @@ class PSU:
         return found_com_port
 
     def write(self, address, value):
-        rr = self.pymc.write_register(address.value, value, slave=self.slaveId)
+        rr = self.pymc.write_register(address.value, value, device_id=self.slaveId)
         if rr.isError() and self.debug:
             print(address.name, rr.message)
 
     def read(self, address, len=1):
         value = None
-        rr = self.pymc.read_holding_registers(address.value, len, slave=self.slaveId)
+        rr = self.pymc.read_holding_registers(address.value, len, device_id=self.slaveId)
 
         # sometimes rr is returned as an error byte string rather than a
         # pdu.register_read_message.ReadHoldingRegistersResponse - however checking the
